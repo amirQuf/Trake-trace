@@ -17,6 +17,7 @@ LOCAL_APPS = [
     'trace.core.apps.CoreConfig',
     'trace.common.apps.CommonConfig',
     'trace.users.apps.UsersConfig',
+    'trace.shipments.apps.ShipmentsConfig',
     'trace.authentication.apps.AuthenticationConfig',
 ]
 
