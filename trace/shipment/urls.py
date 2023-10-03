@@ -7,8 +7,8 @@ from .views import ShipmentViewSet, ArticleViewSet
 
 router = DefaultRouter()
 
-router.register("shipments", ShipmentViewSet)
-router.register("articles", ArticleViewSet)
+router.register("shipments", ShipmentViewSet, basename="Shipment")
+router.register("articles", ArticleViewSet, basename="Article")
 
 urlpatterns = []
 

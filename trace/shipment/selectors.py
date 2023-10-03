@@ -2,7 +2,7 @@ from .models import Shipment, Article
 from typing import List
 
 
-def retrieve_all_shipment() -> List[Shipment]:
+def retrieve_all_shipments() -> List[Shipment]:
     return Shipment.objects.all()
 
 

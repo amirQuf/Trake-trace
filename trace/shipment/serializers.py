@@ -6,13 +6,31 @@ from .models import Shipment, Article
 class ArticleInputSerializer(serializers.ModelSerializer):
     class Meta:
         model = Article
-        fields = ()
+        fields = (
+            "name",
+            "quantity",
+            "price",
+            "sender_address",
+            "receiver_address",
+            "SKU",
+            "status",
+        )
 
 
 class ArticleOutputSerializer(serializers.Serializer):
+    status = serializers.CharField(source="get_status_display")
+
     class Meta:
         model = Article
-        fields = ()
+        fields = (
+            "name",
+            "quantity",
+            "price",
+            "sender_address",
+            "receiver_address",
+            "SKU",
+            "status",
+        )
 
 
 class ShipmentInputSerializer(serializers.ModelSerializer):
@@ -26,4 +44,4 @@ class ShipmentOutputSerializer(serializers.Serializer):
 
     class Meta:
         model = Shipment
-        fields = ("tracking_number", "carrier")
+        fields = ("tracking_number", "carrier", "articles")

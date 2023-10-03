@@ -1,20 +1,22 @@
 from django.shortcuts import render
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.views import ModelViewSet
-from services import create_shipment, create_article
+from rest_framework.viewsets import ModelViewSet
 
-from .models import Article
-from .selectors import retrieve_all_shipments, retrieve_all_articles
+from .models import Article, Shipment
+from .selectors import retrieve_all_articles, retrieve_all_shipments
 from .serializers import (
     ArticleInputSerializer,
     ArticleOutputSerializer,
     ShipmentInputSerializer,
     ShipmentOutputSerializer,
 )
+from .services import create_article, create_shipment
 
 
 class ShipmentViewSet(ModelViewSet):
+    queryset = Shipment.objects.all()
+
     def list(self, request):
         """
         List of all shipments
@@ -75,7 +77,15 @@ class ArticleViewSet(ModelViewSet):
         serializer = self.get_serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
-            article = create_article()
+            article = create_article(
+                name=serializer.validated_data.get("name"),
+                quantity=serializer.validated_data.get("quantity"),
+                price=serializer.validated_data.get("price"),
+                sender_address=serializer.validated_data.get("sender_address"),
+                receiver_address=serializer.validated_data.get("receiver_address"),
+                SKU=serializer.validated_data.get("SKU"),
+                status=serializer.validated_data.get("status"),
+            )
 
         except Exception as ex:
             return Response(f"Database Error {ex}", status=status.HTTP_400_BAD_REQUEST)
