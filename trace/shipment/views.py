@@ -13,13 +13,32 @@ from .serializers import (
 )
 from .services import create_article, create_shipment
 
+from django_filters.rest_framework import DjangoFilterBackend
+
 
 class ShipmentViewSet(ModelViewSet):
     queryset = Shipment.objects.all()
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["tracking_number", "carrier"]
 
     def list(self, request):
         """
-        List of all shipments
+        Retrieve a list of all shipments.
+
+        This method retrieves a list of all shipments from the database using the
+        'retrieve_all_shipments' selector function. It then serializes the data using
+        the 'ShipmentOutputSerializer' and returns a Response object containing the
+        serialized data and a success status.
+
+        Parameters:
+            request (HttpRequest): The HTTP request object.
+
+        Returns:
+            Response: A Response object containing a list of serialized shipments and a
+            success status.
+
+        Raises:
+            N/A
         """
         query = retrieve_all_shipments()
         return Response(
@@ -34,7 +53,21 @@ class ShipmentViewSet(ModelViewSet):
 
     def create(self, request):
         """
-        create a new shipment
+        Create a new shipment.
+
+        This method handles the creation of a new shipment based on the provided data.
+        It utilizes the specified serializer to validate the request data and then creates
+        a shipment using the validated tracking number and carrier information.
+
+        Parameters:
+            request (HttpRequest): The HTTP request object containing the payload data.
+
+        Returns:
+            Response: A Response object containing the serialized data of the created shipment.
+
+        Raises:
+            HTTP_400_BAD_REQUEST: If there's a database error during shipment creation.
+            ValidationError: If the request data is invalid or missing required fields.
         """
         serializer = self.get_serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -51,6 +84,21 @@ class ShipmentViewSet(ModelViewSet):
         )
 
     def get_serializer_class(self, data):
+        """
+        Determine the appropriate serializer class for the view action.
+
+        This method determines the serializer class to use based on the action being
+        performed (retrieve or list) and returns the corresponding serializer class.
+
+        Parameters:
+            data: The data associated with the request.
+
+        Returns:
+            Serializer Class: The appropriate serializer class based on the action.
+
+        Raises:
+            N/A
+        """
         if self.action in ["retrieve", "list"]:
             return ShipmentOutputSerializer
         return ShipmentInputSerializer
@@ -60,7 +108,24 @@ class ArticleViewSet(ModelViewSet):
     query_set = Article.objects.all()
 
     def list(self, request):
-        """List all shipments"""
+        """
+        List all articles.
+
+        This method retrieves a list of all articles from the database using the
+        'retrieve_all_articles' selector function. It then serializes the data using
+        the 'ArticleOutputSerializer' and returns a Response object containing the
+        serialized data and a success status.
+
+        Parameters:
+            request (HttpRequest): The HTTP request object.
+
+        Returns:
+            Response: A Response object containing a list of serialized articles and a
+            success status.
+
+        Raises:
+            N/A
+        """
         query = retrieve_all_articles()
         return Response(
             {
@@ -73,7 +138,25 @@ class ArticleViewSet(ModelViewSet):
         )
 
     def create(self, request, *args, **kwargs):
-        """create a new shipment"""
+        """
+        Create a new article.
+
+        This method handles the creation of a new article based on the provided data.
+        It utilizes the specified serializer to validate the request data and then creates
+        an article using the validated article information.
+
+        Parameters:
+            request (HttpRequest): The HTTP request object containing the payload data.
+            args (tuple): Additional positional arguments.
+            kwargs (dict): Additional keyword arguments.
+
+        Returns:
+            Response: A Response object containing the serialized data of the created article.
+
+        Raises:
+            HTTP_400_BAD_REQUEST: If there's a database error during article creation.
+            ValidationError: If the request data is invalid or missing required fields.
+        """
         serializer = self.get_serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
@@ -94,6 +177,18 @@ class ArticleViewSet(ModelViewSet):
         )
 
     def get_serializer_class(self):
+        """
+        Determine the appropriate serializer class for the view action.
+
+        This method determines the serializer class to use based on the action being
+        performed (retrieve or list) and returns the corresponding serializer class.
+
+        Returns:
+            Serializer Class: The appropriate serializer class based on the action.
+
+        Raises:
+            N/A
+        """
         if self.action in ["retrieve", "list"]:
             return ArticleOutputSerializer
         return ArticleInputSerializer
