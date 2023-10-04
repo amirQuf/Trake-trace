@@ -1,6 +1,3 @@
-# trace
-first of all we are using cookiecutter for bootstraping project 
-cookiecuter that i choose for this project is https://github.com/amirbahador-hub/django_style_guide
 
 
 ## project setup
