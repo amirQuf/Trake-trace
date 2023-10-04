@@ -1,8 +1,24 @@
-from celery import shared_task
 from trace.shipment.models import Articles
 import re
 import requests
-from django.core.cache import cache
+
+
+def extract_zip_code(address: str) -> str:
+    """
+    Extracts the first 5-digit zip code from the given address.
+
+    Args:
+        address (str): The address from which to extract the zip code.
+
+    Returns:
+        str: The first 5-digit zip code found in the address. Returns an empty string if no zip code is found.
+    """
+    zipcode_pattern = r"\b\d{5}\b"
+    arg = re.findall(zipcode_pattern, address)
+    if arg:
+        return arg[0]
+    else:
+        return ""
 
 
 def get_all_receiver_zipcode():
@@ -13,12 +29,9 @@ def get_all_receiver_zipcode():
         list: A list of extracted zip codes.
     """
     zip_codes = []
-    zipcode_pattern = r"\b\d{5}\b"
     articles_list = Articles.objects.all()
-    for articles in articles_list:
-        arg = re.findall(zipcode_pattern, Articles.receiver_address)
-        if arg:
-            zip_codes.append(arg[0])
+    for article in articles_list:
+        zip_codes.append(extract_zip_code(article.receiver_address))
 
     return zip_codes
 
@@ -52,19 +65,3 @@ class WeatherAPICaller:
             return data.get("weather", [])
         else:
             return {"error": f"Unable to fetch weather information for {zipcode}"}
-
-
-@shared_task
-def get_weathers(api: WeatherAPICaller):
-    """
-    Retrieves weather information for a list of zip codes and caches the data.
-
-    Args:
-        api (WeatherAPICaller): An instance of WeatherAPICaller to call the weather API.
-    """
-    zip_codes = get_all_receiver_zipcode()
-    for zipcode in zip_codes:
-        # Call the Weather API using the provided API caller
-        weather = api.call(zipcode)
-        # Cache the weather information
-        cache.set(zipcode, weather)

@@ -1,5 +1,7 @@
 from .models import Shipment, Article
 from typing import List
+from .utils import extract_zip_code
+from django.core.cache import cache
 
 
 def retrieve_all_shipments() -> List[Shipment]:
@@ -46,3 +48,22 @@ def retrieve_article(article_id: int) -> Article:
         Article: The article object corresponding to the given ID.
     """
     return Article.objects.get(id=article_id)
+
+
+def get_weather(address: str) -> str:
+    """
+    Retrieves weather information for a given address.
+
+    This function uses the provided address to extract the zip code and then retrieves weather
+    information associated with that zip code from the cache.
+
+    Args:
+        address (str): The address for which to retrieve weather information.
+
+    Returns:
+        str: The weather information for the given address based on the associated zip code.
+             Returns an empty string if no weather information is found for the zip code.
+    """
+    zip_code = extract_zip_code(address)
+    weather = cache.get(zip_code)
+    return weather
