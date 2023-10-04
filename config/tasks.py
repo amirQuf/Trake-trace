@@ -6,32 +6,65 @@ from django.core.cache import cache
 
 
 def get_all_receiver_zipcode():
+    """
+    Extracts zip codes from the receiver address of articles.
+
+    Returns:
+        list: A list of extracted zip codes.
+    """
     zip_codes = []
     zipcode_pattern = r"\b\d{5}\b"
-    q = Articles.objects.all()
-    for articles in q:
+    articles_list = Articles.objects.all()
+    for articles in articles_list:
         arg = re.findall(zipcode_pattern, Articles.receiver_address)
-        zip_codes.append(arg[0])
+        if arg:
+            zip_codes.append(arg[0])
+
     return zip_codes
 
 
-def weather_api_call(zipcode: str) -> str:
-    API_KEY = ""
-    BASE_URL = "https://api.openweathermap.org/data/2.5/weather?"
-    URL = BASE_URL + "q=" + zipcode + "&appid=" + API_KEY
-    response = requests.get(URl)
-    if response.status_code == 200:
-        data = response.json()
-        return data["weather"]
-    else:
-        # Handle API error
-        return {"error": "Unable to fetch weather information"}
+class WeatherAPICaller:
+    def __init__(self, api_key):
+        """
+        Initializes the WeatherAPICaller with the API key.
+
+        Args:
+            api_key (str): The API key for accessing the weather API.
+        """
+        self.API_KEY = api_key
+        self.BASE_URL = "https://api.openweathermap.org/data/2.5/weather?"
+
+    def call(self, zipcode: str) -> dict:
+        """
+        Calls the weather API to retrieve weather information for a given zip code.
+
+        Args:
+            zipcode (str): The zip code for which weather information is requested.
+
+        Returns:
+            dict: Weather information for the specified zip code.
+        """
+        URL = f"{self.BASE_URL}q={zipcode}&appid={self.API_KEY}"
+        response = requests.get(URL)
+
+        if response.status_code == 200:
+            data = response.json()
+            return data.get("weather", [])
+        else:
+            return {"error": f"Unable to fetch weather information for {zipcode}"}
 
 
-def get_weathers():
+@shared_task
+def get_weathers(api: WeatherAPICaller):
+    """
+    Retrieves weather information for a list of zip codes and caches the data.
+
+    Args:
+        api (WeatherAPICaller): An instance of WeatherAPICaller to call the weather API.
+    """
     zip_codes = get_all_receiver_zipcode()
     for zipcode in zip_codes:
-        weather = weather_api_call(zipcode)
-        cached_weather_info = cache.get(zipcode)
-        if not cached_weather_info:
-            cache.set(zip_codes, weather)
+        # Call the Weather API using the provided API caller
+        weather = api.call(zipcode)
+        # Cache the weather information
+        cache.set(zipcode, weather)
